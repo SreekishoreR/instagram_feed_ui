@@ -15,7 +15,7 @@ The demo video demonstrates:
 • Pinch-to-Zoom interaction on images  
 • Like and Save state toggling  
 
-(Attach demo video link here)
+GDrive link -> https://drive.google.com/file/d/1N-Lz0086jj4cQQT30-yHIvcPeA0lUdbf/view?usp=sharing
 
 ---
 

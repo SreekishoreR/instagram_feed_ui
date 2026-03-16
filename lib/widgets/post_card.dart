@@ -15,83 +15,102 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
+
   final PageController controller = PageController();
   bool showHeart = false;
+  bool isZooming = false;
 
   void onDoubleTap() {
+
     setState(() {
       widget.post.isLiked = true;
       showHeart = true;
     });
 
     Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        setState(() {
-          showHeart = false;
-        });
-      }
+      setState(() {
+        showHeart = false;
+      });
     });
+
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// USER HEADER
+
+        /// HEADER
         ListTile(
           leading: CircleAvatar(
             backgroundImage: NetworkImage(widget.post.profileImage),
           ),
-          title: Text(
-            widget.post.username,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          title: Text(widget.post.username),
           trailing: const Icon(Icons.more_vert),
         ),
 
-        /// IMAGE CAROUSEL + HEART
+        /// IMAGE CAROUSEL
         GestureDetector(
           onDoubleTap: onDoubleTap,
           child: Stack(
             alignment: Alignment.center,
             children: [
+
               SizedBox(
                 height: MediaQuery.of(context).size.width,
                 width: double.infinity,
                 child: PageView.builder(
                   controller: controller,
+
+                  physics: isZooming
+                      ? const NeverScrollableScrollPhysics()
+                      : const BouncingScrollPhysics(),
+
                   itemCount: widget.post.images.length,
                   itemBuilder: (context, index) {
-                    return ClipRect(
-                      child: InteractiveViewer(
-                        minScale: 1,
-                        maxScale: 4,
-                        panEnabled: true,
-                        child: CachedNetworkImage(
-                          imageUrl: widget.post.images[index],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
 
-                          /// LOADING STATE
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                    return InteractiveViewer(
 
-                          /// EDGE CASE HANDLING
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
+                      minScale: 1,
+                      maxScale: 4,
+                      panEnabled: true,
+
+                      onInteractionStart: (_) {
+                        setState(() {
+                          isZooming = true;
+                        });
+                      },
+
+                      onInteractionEnd: (_) {
+                        setState(() {
+                          isZooming = false;
+                        });
+                      },
+
+                      child: CachedNetworkImage(
+                        imageUrl: widget.post.images[index],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+
+                        placeholder: (context, url) =>
+                            const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              size: 40,
                             ),
                           ),
                         ),
                       ),
                     );
+
                   },
                 ),
               ),
@@ -122,6 +141,7 @@ class _PostCardState extends State<PostCard> {
                   ),
                 ),
               ),
+
             ],
           ),
         ),
@@ -129,65 +149,73 @@ class _PostCardState extends State<PostCard> {
         /// ACTION BUTTONS
         Row(
           children: [
+
             IconButton(
               iconSize: 26,
               icon: Icon(
-                widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
-                color: widget.post.isLiked ? Colors.red : Colors.black,
+                widget.post.isLiked
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: widget.post.isLiked
+                    ? Colors.red
+                    : Colors.black,
               ),
               onPressed: () {
-                context.read<PostProvider>().toggleLike(widget.post.id);
+                context.read<PostProvider>()
+                    .toggleLike(widget.post.id);
               },
             ),
+
             IconButton(
               iconSize: 26,
               icon: const Icon(Icons.chat_bubble_outline),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Comment clicked")),
+                  const SnackBar(
+                    content: Text("Comment clicked"),
+                  ),
                 );
               },
             ),
+
             IconButton(
               iconSize: 26,
               icon: const Icon(Icons.send),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Share clicked")),
+                  const SnackBar(
+                    content: Text("Share clicked"),
+                  ),
                 );
               },
             ),
+
             const Spacer(),
+
             IconButton(
               iconSize: 26,
               icon: Icon(
-                widget.post.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                widget.post.isSaved
+                    ? Icons.bookmark
+                    : Icons.bookmark_border,
               ),
               onPressed: () {
-                context.read<PostProvider>().toggleSave(widget.post.id);
+                context.read<PostProvider>()
+                    .toggleSave(widget.post.id);
               },
             ),
+
           ],
         ),
 
         /// CAPTION
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.black),
-              children: [
-                TextSpan(
-                  text: "${widget.post.username} ",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: widget.post.caption),
-              ],
-            ),
-          ),
+          child: Text(widget.post.caption),
         ),
 
         const SizedBox(height: 10),
+
       ],
     );
   }
